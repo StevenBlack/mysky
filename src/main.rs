@@ -45,9 +45,9 @@ fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> 
         terminal.draw(|f| ui::draw(f, &app))?;
 
         let timeout = tick.checked_sub(last_tick.elapsed()).unwrap_or_default();
-        if event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
+        if event::poll(timeout)?
+            && let Event::Key(key) = event::read()?
+                && key.kind == KeyEventKind::Press {
                     match key.code {
                         KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
                         KeyCode::Char('u') => app.toggle_utc(),
@@ -55,8 +55,6 @@ fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> 
                         _ => {}
                     }
                 }
-            }
-        }
 
         if last_tick.elapsed() >= tick {
             app.update();
