@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# My personal release script
+cargo build --release
+cp ./target/release/mysky ~/bin/mysky
