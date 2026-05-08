@@ -213,3 +213,25 @@ pub fn moon_position(jd: f64) -> (f64, f64) {
 
     (ra, dec)
 }
+
+/// Apparent magnitude of the Moon based on its phase angle.
+/// Formula from Allen's Astrophysical Quantities.
+pub fn moon_magnitude(jd: f64) -> f64 {
+    use super::sun::sun_position;
+
+    let (sun_ra, sun_dec) = sun_position(jd);
+    let (moon_ra, moon_dec) = moon_position(jd);
+
+    // Geocentric elongation (angular separation Moon–Sun)
+    let dra = (moon_ra - sun_ra).to_radians();
+    let md = moon_dec.to_radians();
+    let sd = sun_dec.to_radians();
+    let cos_elong = md.sin() * sd.sin() + md.cos() * sd.cos() * dra.cos();
+    let elongation = cos_elong.clamp(-1.0, 1.0).acos().to_degrees();
+
+    // Phase angle ≈ 180° − elongation (Sun is ~400× farther, so approximation is excellent)
+    let alpha = 180.0 - elongation;
+
+    // Allen's formula: V = -12.73 + 0.026|α| + 4×10⁻⁹ α⁴
+    -12.73 + 0.026 * alpha + 4.0e-9 * alpha.powi(4)
+}

@@ -3,8 +3,8 @@ use chrono_tz::America::Toronto;
 
 use crate::astronomy::{
     coords::equatorial_to_horizontal,
-    moon::moon_position,
-    planets::{planet_position, Planet},
+    moon::{moon_magnitude, moon_position},
+    planets::{planet_position_and_mag, Planet},
     rise_set::{jd_midnight, rise_transit_set, RiseTransitSet, H0_MOON, H0_STAR, H0_SUN},
     stars::{star_position, NAV_STARS},
     sun::sun_position,
@@ -86,15 +86,16 @@ impl App {
             let (ra, dec) = moon_position(jd);
             let (alt, az) = equatorial_to_horizontal(ra, dec, LAT, lst);
             let rts = rise_transit_set(ra, dec, LAT, LON, jd0, H0_MOON);
-            bodies.push(body_from_rts("Moon", BodyType::Moon, alt, az, None, &rts));
+            let mag = moon_magnitude(jd);
+            bodies.push(body_from_rts("Moon", BodyType::Moon, alt, az, Some(mag), &rts));
         }
 
         // Planets
         for &planet in Planet::all() {
-            let (ra, dec) = planet_position(jd, planet);
+            let (ra, dec, mag) = planet_position_and_mag(jd, planet);
             let (alt, az) = equatorial_to_horizontal(ra, dec, LAT, lst);
             let rts = rise_transit_set(ra, dec, LAT, LON, jd0, H0_STAR);
-            bodies.push(body_from_rts(planet.name(), BodyType::Planet, alt, az, None, &rts));
+            bodies.push(body_from_rts(planet.name(), BodyType::Planet, alt, az, Some(mag), &rts));
         }
 
         // 57 navigational stars

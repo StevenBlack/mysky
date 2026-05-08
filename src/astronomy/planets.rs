@@ -160,18 +160,39 @@ fn heliocentric_xyz(els: &[f64; 12], t: f64) -> (f64, f64, f64) {
 }
 
 /// Returns (RA degrees, Dec degrees) for a planet at the given JD (UT).
+#[allow(dead_code)]
 pub fn planet_position(jd: f64, planet: Planet) -> (f64, f64) {
+    let (ra, dec, _) = planet_position_mag(jd, planet);
+    (ra, dec)
+}
+
+/// Returns (RA degrees, Dec degrees, apparent magnitude) for a planet.
+pub fn planet_position_and_mag(jd: f64, planet: Planet) -> (f64, f64, f64) {
+    planet_position_mag(jd, planet)
+}
+
+fn planet_position_mag(jd: f64, planet: Planet) -> (f64, f64, f64) {
     let t = j2000_centuries(jd);
 
     let (px, py, pz) = heliocentric_xyz(&orbital_elements(planet), t);
     let (ex, ey, ez) = heliocentric_xyz(&earth_elements(), t);
 
+    let r = (px * px + py * py + pz * pz).sqrt();
+    let r_earth = (ex * ex + ey * ey + ez * ez).sqrt();
+
     // Geocentric ecliptic
     let gx = px - ex;
     let gy = py - ey;
     let gz = pz - ez;
+    let delta = (gx * gx + gy * gy + gz * gz).sqrt();
 
-    // Ecliptic to equatorial (J2000 obliquity ≈ 23.43929°)
+    // Phase angle via law of cosines
+    let cos_alpha = (r * r + delta * delta - r_earth * r_earth) / (2.0 * r * delta);
+    let alpha = cos_alpha.clamp(-1.0, 1.0).acos().to_degrees();
+
+    let mag = apparent_magnitude(planet, r, delta, alpha);
+
+    // Ecliptic to equatorial
     let eps = (23.439291111 - 0.013004167 * t).to_radians();
     let qx = gx;
     let qy = gy * eps.cos() - gz * eps.sin();
@@ -180,5 +201,30 @@ pub fn planet_position(jd: f64, planet: Planet) -> (f64, f64) {
     let ra = reduce_deg(f64::atan2(qy, qx).to_degrees());
     let dec = f64::atan2(qz, (qx * qx + qy * qy).sqrt()).to_degrees();
 
-    (ra, dec)
+    (ra, dec, mag)
+}
+
+/// Apparent visual magnitude using 1984 Astronomical Almanac formulas.
+fn apparent_magnitude(planet: Planet, r: f64, delta: f64, alpha: f64) -> f64 {
+    let log_rd = 5.0 * (r * delta).log10();
+    match planet {
+        Planet::Mercury => {
+            -0.42 + log_rd
+                + 0.0380 * alpha
+                - 0.000273 * alpha * alpha
+                + 0.000002 * alpha * alpha * alpha
+        }
+        Planet::Venus => {
+            -4.40 + log_rd
+                + 0.0009 * alpha
+                + 0.000239 * alpha * alpha
+                - 0.00000065 * alpha * alpha * alpha
+        }
+        Planet::Mars    => -1.52 + log_rd + 0.016 * alpha,
+        Planet::Jupiter => -9.40 + log_rd + 0.005 * alpha,
+        // Saturn: simplified (no ring-inclination term)
+        Planet::Saturn  => -8.68 + log_rd + 0.044 * alpha,
+        Planet::Uranus  => -7.19 + log_rd,
+        Planet::Neptune => -6.87 + log_rd,
+    }
 }
