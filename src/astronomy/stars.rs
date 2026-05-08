@@ -59,6 +59,10 @@ pub const NAV_STARS: &[NavStar] = &[
     NavStar { name: "Mirfak",          ra_h:  3.4053889, dec_d:  49.8611111, mag:  1.79 },
     NavStar { name: "Nunki",           ra_h: 18.9210833, dec_d: -26.2966667, mag:  2.05 },
     NavStar { name: "Peacock",         ra_h: 20.4274722, dec_d: -56.7350000, mag:  1.94 },
+    // Polaris is not a navigational star but it is useful, so including it here.
+    NavStar { name: "Polaris",         ra_h: 37.9545,    dec_d:  89.2641,    mag:  1.98 },
+    // Castor is not a navigational star (it's a triple binary star system) but including it here.
+    NavStar { name: "Castor",          ra_h:  7.576634,  dec_d:  31.888276,  mag:  1.58 },
     NavStar { name: "Pollux",          ra_h:  7.7552778, dec_d:  28.0261111, mag:  1.14 },
     NavStar { name: "Procyon",         ra_h:  7.6550278, dec_d:   5.2250000, mag:  0.38 },
     NavStar { name: "Rasalhague",      ra_h: 17.5822500, dec_d:  12.5600000, mag:  2.08 },
