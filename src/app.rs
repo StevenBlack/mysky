@@ -111,6 +111,9 @@ impl App {
             ));
         }
 
+        // Drop stars that never rise at this latitude
+        bodies.retain(|b| !(b.body_type == BodyType::Star && b.never_rises));
+
         // Sort: above horizon first (by altitude desc), then below (by altitude desc)
         bodies.sort_by(|a, b| b.alt.partial_cmp(&a.alt).unwrap());
 
