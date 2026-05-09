@@ -12,8 +12,8 @@ use crate::astronomy::{
 };
 
 // Kingston, Ontario
-pub const LAT: f64 = 44.2311;
-pub const LON: f64 = -76.4860; // east
+pub const LAT: f64 = 44.26;
+pub const LON: f64 = -76.47; // east
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BodyType {
